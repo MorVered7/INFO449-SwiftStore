@@ -37,12 +37,18 @@ class Receipt {
         //print out all of the items stored on the Receipt
         var result = "Receipt:\n"
         for item in list {
-            result += "\(item.name): \(item.price())\n"
+            result += "\(item.name): \(String(format: "$%.2f", Double(item.price()) / 100.0))\n"
         }
+        result += "------------------\n"
+        result += "TOTAL: \(String(format: "$%.2f", Double(total()) / 100.0))"
         return result
     }
     func total() -> Int {
-        return 0
+        var total = 0
+        for item in list {
+            total += item.price()
+        }
+        return total
     }
 }
 
