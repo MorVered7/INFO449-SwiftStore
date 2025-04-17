@@ -68,9 +68,39 @@ TOTAL: $7.97
     }
     
     var register2 = Register()
+    //Create a unit test that tests adding a single Item to the Register and displays its subtotal (which should be the single Item's price).
     func testSingleItem() {
         register2.scan(Item(name: "Oranges", priceEach: 299))
         XCTAssertEqual(299, register2.subtotal())
     }
-    //Create a unit test that tests adding a single Item to the Register and displays its subtotal (which should be the single Item's price).
+    //test adding 2 items, then check the subtotal, then another item and the total
+    func test3ItemsSubtotals() {
+        register2.scan(Item(name: "Oranges", priceEach: 299))
+        register2.scan(Item(name: "Eggs", priceEach: 4999))
+        XCTAssertEqual(5298, register2.subtotal())
+        register2.scan(Item(name: "Cheese", priceEach: 99))
+        let receipt = register2.total()
+        let expectedReceipt = """
+Receipt:
+Oranges: $2.99
+Eggs: $49.99
+Cheese: $0.99
+------------------
+TOTAL: $53.97
+"""
+        XCTAssertEqual(expectedReceipt, receipt.output())
+    }
+    //test adding two of the same item
+    func testTwoOfTheSameItem() {
+        register2.scan(Item(name: "Oranges", priceEach: 299))
+        register2.scan(Item(name: "Oranges", priceEach: 299))
+        XCTAssertEqual(598, register2.subtotal())
+    }
+    //call total twice in a row
+    func test2Total() {
+        register2.scan(Item(name: "Oranges", priceEach: 299))
+        _ = register2.total()
+        let secondReceipt = register2.total()
+        XCTAssertEqual(0, secondReceipt.total())
+    }
 }
