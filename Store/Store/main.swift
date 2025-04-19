@@ -27,8 +27,10 @@ class Item: SKU {
 //When a Register is created, have it create a Receipt on which to capture all the items scanned
 class Receipt {
     var list: [SKU]
-    init(list: [SKU] = []) {
+    var coupons: [Coupon] = []
+    init(list: [SKU] = [], coupons: [Coupon] = []) {
         self.list = list
+        self.coupons = coupons
     }
     func items() -> [SKU] {
         return list
@@ -36,8 +38,17 @@ class Receipt {
     func output() -> String{
         //print out all of the items stored on the Receipt
         var result = "Receipt:\n"
+        var usedCoupons: Set<String> = []
         for item in list {
-            result += "\(item.name): \(String(format: "$%.2f", Double(item.price()) / 100.0))\n"
+            var price = item.price()
+            for coupon in coupons {
+                if !usedCoupons.contains(coupon.itemName) && item.name == coupon.itemName {
+                    price = Int(Double(price) * (1.0 - coupon.discount))
+                    usedCoupons.insert(coupon.itemName)
+                    break
+                }
+            }
+            result += "\(item.name): \(String(format: "$%.2f", Double(price) / 100.0))\n"
         }
         result += "------------------\n"
         result += "TOTAL: \(String(format: "$%.2f", Double(total()) / 100.0))"
@@ -45,8 +56,16 @@ class Receipt {
     }
     func total() -> Int {
         var total = 0
+        var usedCoupons: Set<String> = []
         for item in list {
-            total += item.price()
+            var price = item.price()
+            for coupon in coupons {
+                if !usedCoupons.contains(coupon.itemName) && item.name == coupon.itemName {
+                    price = Int(Double(price) * (1.0 - coupon.discount))
+                    usedCoupons.insert(coupon.itemName)
+                }
+            }
+            total += price
         }
         return total
     }
@@ -73,7 +92,15 @@ class Register {
         return result
     }
 }
-
+class Coupon {
+    let itemName: String
+    let discount: Double
+        
+    init(itemName: String, discount: Double = 0.15) {
+        self.itemName = itemName
+        self.discount = discount
+    }
+}
 class Store {
     let version = "0.1"
     func helloWorld() -> String {

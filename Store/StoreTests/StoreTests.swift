@@ -103,4 +103,92 @@ TOTAL: $53.97
         let secondReceipt = register2.total()
         XCTAssertEqual(0, secondReceipt.total())
     }
+    //price is negative
+    func testNegative(){
+        register2.scan(Item(name: "Oranges", priceEach: -299))
+        XCTAssertEqual(-299, register2.subtotal())
+    }
+    func testEmptyReceipt() {
+        let expectedReceipt = """
+Receipt:
+------------------
+TOTAL: $0.00
+"""
+        XCTAssertEqual(register2.receipt.output(), expectedReceipt)
+    }
+    //coupon tests
+    func testCoupon(){
+        register2.scan(Item(name: "Beans", priceEach: 300))
+        register2.scan(Item(name: "Beans", priceEach: 300))
+        register2.receipt.coupons.append(Coupon(itemName: "Beans"))
+        let r = register2.total()
+        XCTAssertEqual(555, r.total())
+    }
+    
+    func testCouponOutput(){
+        register2.scan(Item(name: "Beans", priceEach: 300))
+        register2.scan(Item(name: "Beans", priceEach: 300))
+        register2.receipt.coupons.append(Coupon(itemName: "Beans"))
+        let receipt = register2.total()
+        let expectedReceipt = """
+Receipt:
+Beans: $2.55
+Beans: $3.00
+------------------
+TOTAL: $5.55
+"""
+        XCTAssertEqual(expectedReceipt, receipt.output())
+    }
+    
+    func testTwoCouponsOutput(){
+        register2.scan(Item(name: "Beans", priceEach: 300))
+        register2.scan(Item(name: "Beans", priceEach: 300))
+        register2.scan(Item(name: "Milk", priceEach: 200))
+        register2.scan(Item(name: "Milk", priceEach: 200))
+
+        register2.receipt.coupons.append(Coupon(itemName: "Beans"))
+        register2.receipt.coupons.append(Coupon(itemName: "Milk"))
+        
+        let expectedReceipt = """
+Receipt:
+Beans: $2.55
+Beans: $3.00
+Milk: $1.70
+Milk: $2.00
+------------------
+TOTAL: $9.25
+"""
+
+        XCTAssertEqual(expectedReceipt, register2.receipt.output())
+    }
+    
+    func testCouponAppliesOnce(){
+        register2.scan(Item(name: "Beans", priceEach: 300))
+        register2.scan(Item(name: "Beans", priceEach: 300))
+        register2.scan(Item(name: "Beans", priceEach: 300))
+        register2.receipt.coupons.append(Coupon(itemName: "Beans"))
+        let receipt = register2.total()
+        let expectedReceipt = """
+Receipt:
+Beans: $2.55
+Beans: $3.00
+Beans: $3.00
+------------------
+TOTAL: $8.55
+"""
+        XCTAssertEqual(expectedReceipt, receipt.output())
+    }
+    
+    func testCouponForNonexistentItem() {
+        register2.scan(Item(name: "Milk", priceEach: 200))
+        register2.receipt.coupons.append(Coupon(itemName: "Cheese"))
+        
+        let expectedReceipt = """
+Receipt:
+Milk: $2.00
+------------------
+TOTAL: $2.00
+"""
+        XCTAssertEqual(expectedReceipt, register2.receipt.output())
+    }
 }
